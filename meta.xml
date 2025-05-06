@@ -5,15 +5,13 @@
   <script src="s_huntingManager.lua" type="server"/>
   <script src="c_cargarAn.lua" type="client"/>
   <script src="c_windowHunt.lua" type="client"/>
-  
+  <script src="c_undefined.lua" type="client"/>
   <file src="animal/Caracal.dff"/>
   <file src="animal/Caracal.txd"/>
   <file src="animal/Ciervo.dff"/>
   <file src="animal/Ciervo.txd"/>
   <file src="animal/Lobo.dff"/>
   <file src="animal/Lobo.txd"/>
-
-
   <file src="img/caracal.png"/>
   <file src="img/ciervo.png"/>
   <file src="img/grupo.png"/>
