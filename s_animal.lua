@@ -31,6 +31,7 @@ local crearYMoverPeds
 local firstWarning
 local deletePed
 --funciones
+local angulos={30,-30,60,-60,90,-90}
 
 
 function createAndSetTimer(ped,marker,blip)
@@ -108,7 +109,6 @@ function createProximitySensor(ped, marker, blip,player)
     end)
 end
 
-local angulos={30,-30,60,-60,90,-90}
 
 --funcion a mejorar
 function calcRotationNew(ped, player)
@@ -181,11 +181,7 @@ end
 
 
 function changeAnimation(ped,i)
-   
-
     if i<=4 then
-            
-
                  --setElementHealth(ped, 100)  
                  setPedAnimation(
                    ped,--ped 
@@ -196,7 +192,7 @@ function changeAnimation(ped,i)
                  true,-- updatePosition 
                  false,-- interruptible 
                  true )-- freezeLastFrame
-     
+
     else 
        
 
@@ -216,8 +212,6 @@ function removeBlip(blip)
 
       destroyElement(blip)
     
-    
-
     end
 
 end
@@ -287,12 +281,12 @@ end
 
 
 function crearYMoverPeds(player,typeAnimal)
+
          local indiceAleatorio = math.random(1, #posiciones)
          local x1, y1, z1, rotacion = unpack(posiciones[indiceAleatorio]) 
-         local radio=50.0
-    local ped = crearPedEnPosicion(x1, y1, z1, rotacion, player, radio, typeAnimal)
-      
-       
+         local radio=30.0
+         local ped = crearPedEnPosicion(x1, y1, z1, rotacion, player, radio, typeAnimal)
+        
 end
 
 function firstWarning(ped,blip,marker,i,player)
@@ -300,9 +294,9 @@ function firstWarning(ped,blip,marker,i,player)
     removeBlip(blip)
     calcRotation(ped)
 
-    if not checkLife(ped) then --se chequea la vida y en caso de no estar alerta el animal camina
-        changeAnimation(ped, i)
-    end
+        if not checkLife(ped) then --se chequea la vida y en caso de no estar alerta el animal camina
+            changeAnimation(ped, i)
+        end
 
     removeProximitySensor(marker)
     huntingTime(ped) --se cancela el timer de espera y se crea uno nuevo de caza
@@ -315,7 +309,6 @@ addCommandHandler("crear", crearYMoverPeds)
 
 
 addEvent("createAnimal", true)
-
 addEventHandler("createAnimal", root, function(typeAnimal)
        
     crearYMoverPeds(player,typeAnimal)
