@@ -1,6 +1,19 @@
 AnimalHunt = {}
 AnimalHunt.__index = AnimalHunt
 
+posiciones = {
+    { -1754.935546875,  -1864.0048828125, 88.095001220703, 0 },
+    { -1125.248046875,  -2421.1162109375, 80.637603759766, 0 },
+    { -1696.2158203125, -1946.3994140625, 104.8030166626,  0 },
+    { -1371.9326171875, -2738.560546875,  87.689270019531, 0 },
+    { -910.8251953125,  -2520.9287109375, 119.1298828125,  0 },
+    { -975.6396484375,  -2187.984375,     41.6252784729,   0 },
+    { -847.453125,      -2315.23046875,   30.323818206787, 0 },
+    { -1684.869140625,  -2422.1982421875, 103.75692749023, 0 },
+    { -1307.486328125,  -2438.8271484375, 23.657644271851, 0 }
+}
+listIds = { 300, 301, 311, 1 }
+
 State = {peace=1, warning=2, danger=3}
 
 function AnimalHunt:create()
@@ -31,12 +44,14 @@ end
 function AnimalHunt:SpawnPed(x, y, z, typeAnimal)
     self.ped = createPed(listIds[typeAnimal], x, y, z)
     setElementHealth(self.ped, 100)
+    self:RecibeDanoElPed()
 end
 
 function AnimalHunt:CreateMarker(x, y, z, radio)
     self.marker = createMarker(x, y, z, "cylinder", radio, 255, 162, 51, 0)
     attachElements(self.marker, self.ped, 0, 0, 0)
     setElementData(self.marker, "animalHunt", self)
+    self:EntroEnArea()
 end 
 
 function AnimalHunt:CreateBlip(x, y, z)
@@ -73,18 +88,20 @@ function AnimalHunt:changeAnimation()
             false,
             true
         )
+
+    outputChatBox(self.Accion[self.State])
     
 end
 
 function AnimalHunt:checkLife()
     local vida = getElementHealth(self.ped)
     if vida then
-        if vida <= 70 then
-            self.State = State.warning
-            return true   
-        end
         if vida <= 40 then
             self.State = State.danger
+            return true
+        end
+        if vida <= 70 then
+            self.State = State.warning
             return true
         end
         
@@ -98,6 +115,7 @@ function AnimalHunt:huntingBounty(cause, source)
     local money = createPickup(x, y, z, 3, 1212)
 
     addEventHandler("onPickupHit", money, function(source)
+        outputChatBox("Evento de dinero")
         givePlayerMoney(source, cause)
         destroyElement(money)
     end)
@@ -107,6 +125,7 @@ function AnimalHunt:EntroEnArea()
     addEventHandler("onMarkerHit", self.marker, function(hitElement)
         if getElementType(hitElement) == "player" then
             triggerEvent("onAnimalHuntMarkerHit", resourceRoot, self, hitElement)
+            outputChatBox("posicion")
             self:firstWarning()
         end
     end)
@@ -114,6 +133,7 @@ end
 
 function AnimalHunt:RecibeDanoElPed()
     addEventHandler("onPedDamage", self.ped, function()
+        outputChatBox("Evento daño al ped")
         if self.State == State.peace then 
             self:firstWarning()
         end
