@@ -55,7 +55,7 @@ function openImageWindow()
         if selectedImage then
           
 
-            triggerServerEvent("createAnimal", localPlayer, selectedImage)
+            triggerServerEvent("createAnimalObj", localPlayer, selectedImage)
             
             closeImageWindow()
         else

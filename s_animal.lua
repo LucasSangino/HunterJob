@@ -1,6 +1,6 @@
 -- Definir la matriz de posiciones y rotaciones
  local posiciones = {
-     {-1754.935546875, -1864.0048828125, 88.095001220703, 0},  -- Posición 1
+     {-1754.935546875, -1864.0048828125, 88.095001220703, 0}, 
      {-1125.248046875, -2421.1162109375, 80.637603759766, 0},
     {-1696.2158203125, -1946.3994140625, 104.8030166626, 0},
     {-1371.9326171875, -2738.560546875, 87.689270019531, 0},
@@ -31,7 +31,6 @@ local crearYMoverPeds
 local firstWarning
 local deletePed
 --funciones
-local angulos={30,-30,60,-60,90,-90}
 
 
 function createAndSetTimer(ped,marker,blip)
@@ -51,7 +50,6 @@ function huntingTime(ped)
     local timer = setTimer(function()
         deletePed(ped)
     end,300000,1)
-  
     setElementData(ped, "deleteTimer", timer)
 end
 
@@ -109,6 +107,7 @@ function createProximitySensor(ped, marker, blip,player)
     end)
 end
 
+local angulos={30,-30,60,-60,90,-90}
 
 --funcion a mejorar
 function calcRotationNew(ped, player)
@@ -181,7 +180,11 @@ end
 
 
 function changeAnimation(ped,i)
+   
+
     if i<=4 then
+            
+
                  --setElementHealth(ped, 100)  
                  setPedAnimation(
                    ped,--ped 
@@ -192,7 +195,7 @@ function changeAnimation(ped,i)
                  true,-- updatePosition 
                  false,-- interruptible 
                  true )-- freezeLastFrame
-
+     
     else 
        
 
@@ -212,6 +215,8 @@ function removeBlip(blip)
 
       destroyElement(blip)
     
+    
+
     end
 
 end
@@ -220,9 +225,11 @@ end
 function crearPedEnPosicion(x1, y1, z1, rotacion, player, radio, typeAnimal)
     
     local ped = createPed(listIds[typeAnimal], x1, y1, z1)
-     setElementHealth(ped, 100)
+     local i=1
+    setElementHealth(ped, 100)
     math.randomseed(os.time()) 
-    local i=1
+   
+    
     
     if ped then
             setElementData(ped, "npc", player)
@@ -248,10 +255,8 @@ function crearPedEnPosicion(x1, y1, z1, rotacion, player, radio, typeAnimal)
                        --el ped recibe una segunda bala
                          warning=checkLife(ped)
                          calcRotation(ped)   
-                        
                      else
                         --este es el "Proceso de Orientacion"
-                      
                         calcRotation(ped)
 
                     end
@@ -281,12 +286,11 @@ end
 
 
 function crearYMoverPeds(player,typeAnimal)
-
          local indiceAleatorio = math.random(1, #posiciones)
          local x1, y1, z1, rotacion = unpack(posiciones[indiceAleatorio]) 
-         local radio=30.0
-         local ped = crearPedEnPosicion(x1, y1, z1, rotacion, player, radio, typeAnimal)
-        
+         local radio=50.0
+    local ped = crearPedEnPosicion(x1, y1, z1, rotacion, player, radio, typeAnimal)
+       
 end
 
 function firstWarning(ped,blip,marker,i,player)
@@ -294,9 +298,9 @@ function firstWarning(ped,blip,marker,i,player)
     removeBlip(blip)
     calcRotation(ped)
 
-        if not checkLife(ped) then --se chequea la vida y en caso de no estar alerta el animal camina
-            changeAnimation(ped, i)
-        end
+    if not checkLife(ped) then --se chequea la vida y en caso de no estar alerta el animal camina
+        changeAnimation(ped, i)
+    end
 
     removeProximitySensor(marker)
     huntingTime(ped) --se cancela el timer de espera y se crea uno nuevo de caza
@@ -309,6 +313,7 @@ addCommandHandler("crear", crearYMoverPeds)
 
 
 addEvent("createAnimal", true)
+
 addEventHandler("createAnimal", root, function(typeAnimal)
        
     crearYMoverPeds(player,typeAnimal)
