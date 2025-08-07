@@ -1,6 +1,6 @@
 -- Definir la matriz de posiciones y rotaciones
  local posiciones = {
-     {-1754.935546875, -1864.0048828125, 88.095001220703, 0},  -- Posición 1
+     {-1754.935546875, -1864.0048828125, 88.095001220703, 0}, 
      {-1125.248046875, -2421.1162109375, 80.637603759766, 0},
     {-1696.2158203125, -1946.3994140625, 104.8030166626, 0},
     {-1371.9326171875, -2738.560546875, 87.689270019531, 0},
@@ -50,7 +50,6 @@ function huntingTime(ped)
     local timer = setTimer(function()
         deletePed(ped)
     end,300000,1)
-  
     setElementData(ped, "deleteTimer", timer)
 end
 
@@ -136,18 +135,13 @@ end
 
 function huntingBounty(cause,ped,source)
     --aqui se entregara la reconpenza
-
     local x, y, z = getElementPosition(ped)    
     local money = createPickup(x, y, z, 3, 1212)
     
      addEventHandler("onPickupHit", money, function(source)
-    
         givePlayerMoney(source, cause)
-        destroyElement(money)
-        
+        destroyElement(money) 
     end)
-     
-
 end
 
 
@@ -226,9 +220,11 @@ end
 function crearPedEnPosicion(x1, y1, z1, rotacion, player, radio, typeAnimal)
     
     local ped = createPed(listIds[typeAnimal], x1, y1, z1)
-     setElementHealth(ped, 100)
+     local i=1
+    setElementHealth(ped, 100)
     math.randomseed(os.time()) 
-    local i=1
+   
+    
     
     if ped then
             setElementData(ped, "npc", player)
@@ -254,10 +250,8 @@ function crearPedEnPosicion(x1, y1, z1, rotacion, player, radio, typeAnimal)
                        --el ped recibe una segunda bala
                          warning=checkLife(ped)
                          calcRotation(ped)   
-                        
                      else
                         --este es el "Proceso de Orientacion"
-                      
                         calcRotation(ped)
 
                     end
@@ -291,7 +285,6 @@ function crearYMoverPeds(player,typeAnimal)
          local x1, y1, z1, rotacion = unpack(posiciones[indiceAleatorio]) 
          local radio=50.0
     local ped = crearPedEnPosicion(x1, y1, z1, rotacion, player, radio, typeAnimal)
-      
        
 end
 
