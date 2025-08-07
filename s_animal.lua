@@ -135,18 +135,13 @@ end
 
 function huntingBounty(cause,ped,source)
     --aqui se entregara la reconpenza
-
     local x, y, z = getElementPosition(ped)    
     local money = createPickup(x, y, z, 3, 1212)
     
      addEventHandler("onPickupHit", money, function(source)
-    
         givePlayerMoney(source, cause)
-        destroyElement(money)
-        
+        destroyElement(money) 
     end)
-     
-
 end
 
 

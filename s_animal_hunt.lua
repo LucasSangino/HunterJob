@@ -24,27 +24,31 @@ function AnimalHunt:create()
     self.marker = nil
     self.Accion = { "walk_civi", "RUN_civi", "SPRINT_civi" }
     self.State = State.peace
+    self.huntingTimer = nil
+    self.timer = nil
+    self.timerFor = nil
+    self.timerActive = false
+    self.disappearingTimer=nil
 
     return self
 end
 
-function AnimalHunt:startTimer()
-    self.timer = setTimer(function()
-        triggerEvent("onAnimalHuntExpired", resourceRoot, self)
-        self:destroy()
-    end, 5000, 1)
-end
+
 
 function AnimalHunt:destroy()
+    self:KillerTimers()
     if isElement(self.ped) then destroyElement(self.ped) end
     if isElement(self.blip) then destroyElement(self.blip) end
-    if isTimer(self.timer) then killTimer(self.timer) end
+    if isElement(self.marker) then destroyElement(self.marker) end
+
+    self.ped, self.blip, self.marker = nil, nil, nil
 end
 
 function AnimalHunt:SpawnPed(x, y, z, typeAnimal)
     self.ped = createPed(listIds[typeAnimal], x, y, z)
     setElementHealth(self.ped, 100)
     self:RecibeDanoElPed()
+    self:MuerteDelPed()
 end
 
 function AnimalHunt:CreateMarker(x, y, z, radio)
@@ -60,14 +64,7 @@ function AnimalHunt:CreateBlip(x, y, z)
     setBlipSize(self.blip, 2)
 end
 
-function AnimalHunt:CreateAndSetTimmer()
-    self.timer = setTimer(function()
-        destroyElement(self.marker)
-        destroyElement(self.blip)
-        killTimer(self.timer)
-    end, 300000, 1)
-    setElementData(self.ped, "deleteTimer", self.timer)
-end
+
 
 function AnimalHunt:deletePed()
     setTimer(function()
@@ -96,11 +93,11 @@ end
 function AnimalHunt:checkLife()
     local vida = getElementHealth(self.ped)
     if vida then
-        if vida <= 40 then
+        if vida <= 70 then
             self.State = State.danger
             return true
         end
-        if vida <= 70 then
+        if vida <= 90 then
             self.State = State.warning
             return true
         end
@@ -121,6 +118,68 @@ function AnimalHunt:huntingBounty(cause, source)
     end)
 end
 
+function AnimalHunt:causeOfDeath(killer, bodypart)
+
+    local bonus = 10
+
+    if killer and getElementType(killer) == "player" then
+        --player
+        bonus = 30
+    elseif killer and getElementType(killer) == "vehicle" then
+        -- "vehicle_kill"
+        bonus = 5
+    elseif bodypart == 9 then
+        -- "fall"
+        bonus = 5
+    else
+        --"other"
+        bonus = 10
+    end
+
+    return bonus
+end
+
+
+function AnimalHunt:MuerteDelPed()
+    addEventHandler("onPedWasted", self.ped, function(totalAmmo, killer, killerWeapon, bodypart)
+        -- Validamos cada timer antes de intentar detenerlo para evitar errores
+        self:KillerTimers()
+        local cause = self:causeOfDeath(killer,bodypart)
+        self:huntingBounty(cause, source)
+        step=5
+        interval=100
+        fadeOutPed(step, interval)
+    end)
+end
+
+
+function fadeOutPed( step, interval)
+    step = step or 5           -- Cuánto reducir en cada paso (de 255 hacia 0)
+    interval = interval or 100 -- Tiempo entre pasos en milisegundos
+
+    local alpha = getElementAlpha(self.ped)
+    if not alpha then return end
+
+    self.disappearingTimer = setTimer(function()
+        alpha = alpha - step
+        if alpha <= 0 then
+            alpha = 0
+            setElementAlpha(slef.ped, alpha)
+            slef:destroy()
+        else
+            setElementAlpha(self.ped, alpha)
+        end
+    end, interval, math.ceil(255 / step))
+
+end
+
+function AnimalHunt:DeletePed()
+    if isElement(self.ped) then
+        destroyElement(self.ped)
+        self.ped = nil
+    end    
+end
+
 function AnimalHunt:EntroEnArea()
     addEventHandler("onMarkerHit", self.marker, function(hitElement)
         if getElementType(hitElement) == "player" then
@@ -131,9 +190,11 @@ function AnimalHunt:EntroEnArea()
     end)
 end
 
+
 function AnimalHunt:RecibeDanoElPed()
     addEventHandler("onPedDamage", self.ped, function()
         outputChatBox("Evento daño al ped")
+       -- killTimer(self.disappearingTimer)--elimino el 
         if self.State == State.peace then 
             self:firstWarning()
         end
@@ -148,13 +209,36 @@ function AnimalHunt:RecibeDanoElPed()
             self:calcRotation()
             self:changeAnimation()
             -- lógica para huida, recuperación, etc.
+                if not self.timerActive then
+                    self:CreateHuntingTimer()
+                    self:RestTimmer()
+                    self.timerActive = true
+                end
         end
-
     end)
 end
 
+function AnimalHunt:KillerTimers()
+    if isTimer(self.huntingTimer) then
+        killTimer(self.huntingTimer)
+        self.huntingTimer = nil
+    end
+    if isTimer(self.timer) then
+        killTimer(self.timer)
+        self.timer = nil
+    end
+    if isTimer(self.timerFor) then
+        killTimer(self.timerFor)
+        self.timerFor = nil
+    end
+end
+
 function AnimalHunt:firstWarning()
-    destroyElement(self.blip)
+  
+    if isElement(self.blip) then
+        destroyElement(self.blip)
+        self.blip = nil -- Buena práctica para limpiar la referencia
+    end
     self:calcRotation()
 
     if not self:checkLife() then
@@ -162,17 +246,51 @@ function AnimalHunt:firstWarning()
         self:calcRotation()
     end
 
-    destroyElement(self.marker)
+    if isElement(self.marker) then
+        destroyElement(self.marker)
+        self.marker = nil -- Buena práctica para limpiar la referencia
+    end
 end
 
+--funciones timmer
+
 function AnimalHunt:CreateHuntingTimer()
+
     self.huntingTimer = setTimer(function()
-        self:deletePed()
-    end, 300000, 1)
+        outputChatBox("El ped ah desaparecido, ")
+        destroyElement(self.ped)
+      
+    end, 180000, 1)
 end
+
+function AnimalHunt:RestTimmer()
+    self.timer = setTimer(function()
+        outputChatBox("comenzo el tiempo de descanzo")
+        self:AnimalRecovery()
+
+        setTimer(function()
+            outputChatBox("Paso ya paso 10 segundos")
+            self:checkLife()
+            self:changeAnimation()
+            
+        end, 10000, 1)
+    end, 60000, 1)
+end
+
+function AnimalHunt:CreateAndSetTimmer()
+    self.timer = setTimer(function()
+        destroyElement(self.marker)
+        destroyElement(self.blip)
+        killTimer(self.timer)
+    end, 300000, 1)
+    setElementData(self.ped, "deleteTimer", self.timer)
+end
+--funciones timmer 
 
 function AnimalHunt:calcRotation()
     local x1, y1 = getElementPosition(self.ped)
+
+
 
     -- Asegurate de que `posiciones` esté definido globalmente
     local indiceAleatorio = math.random(1, #posiciones)
@@ -182,4 +300,12 @@ function AnimalHunt:calcRotation()
     local rotacion = (angulo + 180) % 360
 
     setElementRotation(self.ped, 0, 0, rotacion)
+end
+
+function AnimalHunt:AnimalRecovery()
+      self.timerFor =  setTimer(function ()
+                        local vida = getElementHealth(self.ped)
+                        setElementHealth(self.ped, vida + 10)
+                        end,2000,5)
+        
 end

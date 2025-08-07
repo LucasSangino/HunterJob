@@ -53,13 +53,9 @@ function openImageWindow()
     -- Manejar el clic en el botón
     addEventHandler("onClientGUIClick", acceptButton, function()
         if selectedImage then
-          
-
             triggerServerEvent("createAnimalObj", localPlayer, selectedImage)
-            
             closeImageWindow()
         else
-          
         end
     end, false)
 
